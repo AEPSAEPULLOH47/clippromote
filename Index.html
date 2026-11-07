@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KaloClip AI - Link to Video Affiliate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-white min-h-screen p-4 font-sans pb-16">
+
+  <!-- Header -->
+  <div class="max-w-md mx-auto text-center mb-5">
+    <div class="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500/20 to-amber-500/20 border border-rose-500/30 text-rose-400 px-3 py-1 rounded-full text-xs font-semibold mb-2">
+      <i class="fa-solid fa-bolt text-amber-400"></i> Auto URL to Video Affiliate
+    </div>
+    <h1 class="text-2xl font-black tracking-tight">KaloClip <span class="text-rose-500">AI</span></h1>
+    <p class="text-xs text-slate-400 mt-1">Tempel link produk marketplace, langsung jadi video promosi</p>
+  </div>
+
+  <div class="max-w-md mx-auto space-y-4">
+    
+    <!-- Step 1: Input Link Produk -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <label class="text-xs font-semibold text-slate-300 block mb-2 flex items-center justify-between">
+        <span><i class="fa-solid fa-link text-rose-500 mr-1.5"></i> Link Produk Marketplace</span>
+        <span class="text-[10px] text-slate-500">TikTok / Shopee / Tokped</span>
+      </label>
+      
+      <div class="space-y-2.5">
+        <div class="relative">
+          <input type="url" id="productUrl" placeholder="https://id.shp.ee/... atau link TikTok Shop" 
+                 class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-3 text-xs focus:outline-none focus:border-rose-500 transition text-slate-100 placeholder-slate-500">
+        </div>
+
+        <!-- Tombol Contoh Cepat untuk Tes -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-400">
+          <span>Tes Cepat:</span>
+          <button type="button" onclick="fillSample('earphone')" class="bg-slate-800 px-2 py-0.5 rounded-md hover:bg-slate-700 whitespace-nowrap">🎧 Earphone TWS</button>
+          <button type="button" onclick="fillSample('powerbank')" class="bg-slate-800 px-2 py-0.5 rounded-md hover:bg-slate-700 whitespace-nowrap">🔋 Powerbank Mini</button>
+        </div>
+
+        <button onclick="processLink()" id="btnGenerate" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 active:scale-95 transition py-3 rounded-xl font-bold text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-rose-950">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE VIDEO SEKARANG
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingBox" class="hidden mt-3 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 text-center">
+        <i class="fa-solid fa-circle-notch fa-spin text-rose-500 text-lg mb-1"></i>
+        <p id="loadingStatus" class="text-xs text-slate-300 font-medium">Sedang mengambil data produk...</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Info Produk Terdeteksi & Naskah -->
+    <div id="resultSection" class="hidden space-y-4">
+      
+      <!-- Ringkasan Produk -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex gap-3 items-center">
+        <img id="scrapedImgPreview" src="" class="w-16 h-16 rounded-xl object-cover bg-slate-800 border border-slate-700 flex-shrink-0" alt="Preview">
+        <div class="overflow-hidden">
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-semibold">Produk Terdeteksi</span>
+          <h3 id="scrapedTitle" class="text-xs font-bold text-slate-100 truncate mt-1">Nama Produk</h3>
+          <p class="text-[11px] text-rose-400 font-semibold mt-0.5">Siap dibuatkan video viral</p>
+        </div>
+      </div>
+
+      <!-- Video Player 9:16 Canvas -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl text-center space-y-3">
+        <div class="flex items-center justify-between text-left">
+          <h2 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-clapperboard text-rose-500"></i> PREVIEW VIDEO (9:16 TIKTOK)
+          </h2>
+          <span id="recordingBadge" class="hidden text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse font-bold">
+            🔴 RECORDING...
+          </span>
+        </div>
+
+        <!-- Frame Kanvas 9:16 -->
+        <div class="relative mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-700 bg-black aspect-[9/16] max-h-[420px] flex items-center justify-center">
+          <canvas id="videoCanvas" width="720" height="1280" class="w-full h-full object-contain"></canvas>
+        </div>
+
+        <!-- Tombol Aksi Video -->
+        <div class="space-y-2 pt-1">
+          <div class="flex gap-2">
+            <button onclick="playAndGenerate(false)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 active:scale-95 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-play"></i> Putar Preview
+            </button>
+            <button onclick="stopPlayback()" class="bg-slate-800 hover:bg-slate-700 py-2.5 px-4 rounded-xl text-xs">
+              <i class="fa-solid fa-stop"></i>
+            </button>
+          </div>
+
+          <!-- Tombol Download Asli Video -->
+          <button onclick="playAndGenerate(true)" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition">
+            <i class="fa-solid fa-download"></i> EXPORT & DOWNLOAD VIDEO (MP4/WEBM)
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail Skrip AI -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <h4 class="text-xs font-bold text-slate-300 flex items-center gap-2">
+          <i class="fa-solid fa-file-audio text-amber-400"></i> Naskah Suara Otomatis
+        </h4>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] space-y-1.5 text-slate-300">
+          <p><span class="text-amber-400 font-bold">[Hook] :</span> <span id="textHook"></span></p>
+          <p><span class="text-cyan-400 font-bold">[Benefit] :</span> <span id="textBody"></span></p>
+          <p><span class="text-rose-400 font-bold">[Call to Action] :</span> <span id="textCta"></span></p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let productImage = new Image();
+    productImage.crossOrigin = "anonymous";
+    let isPlaying = false;
+    let mediaRecorder;
+    let recordedChunks = [];
+    let scriptData = { title: "", hook: "", body: "", cta: "" };
+
+    // Contoh data cepat bila belum punya link
+    function fillSample(type) {
+      if (type === 'earphone') {
+        document.getElementById('productUrl').value = 'https://shopee.co.id/TWS-Earphone-Bluetooth-Wireless-Bass-Viral';
+      } else {
+        document.getElementById('productUrl').value = 'https://tiktok.com/view/product/Powerbank-Mini-Fast-Charging-10000mAh';
+      }
+    }
+
+    // 1. Ekstrak Data dari Link Marketplace
+    async function processLink() {
+      const url = document.getElementById('productUrl').value.trim();
+      if (!url) {
+        alert("Silakan tempel link marketplace terlebih dahulu!");
+        return;
+      }
+
+      const loadingBox = document.getElementById('loadingBox');
+      const loadingStatus = document.getElementById('loadingStatus');
+      const btn = document.getElementById('btnGenerate');
+
+      loadingBox.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        loadingStatus.innerText = "Mengambil foto & info produk dari link...";
+
+        // Menggunakan Microlink API gratis untuk membaca metadata OpenGraph link
+        const apiRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const json = await apiRes.json();
+
+        let extractedTitle = "";
+        let extractedImage = "";
+
+        if (json.status === 'success' && json.data) {
+          extractedTitle = json.data.title || "";
+          extractedImage = json.data.image ? json.data.image.url : "";
+        }
+
+        // Fallback pintar jika marketplace memblokir bot / link privat
+        if (!extractedTitle || extractedTitle.length < 5) {
+          const cleanUrl = url.split('?')[0].replace(/[-_]/g, ' ');
+          const matches = cleanUrl.match(/[a-zA-Z0-9]{4,}/g) || [];
+          extractedTitle = matches.slice(-4).join(' ') || "Produk Pilihan Terlaris TikTok";
+        }
+
+        if (!extractedImage) {
+          // Gambar placeholder produk jika gambar dilarang di-hotlink
+          extractedImage = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80";
+        }
+
+        loadingStatus.innerText = "AI sedang menyusun skrip affiliate viral...";
+        await new Promise(r => setTimeout(r, 600));
+
+        // Buat Naskah Promosi Gaya KaloClip
+        generateAffiliateScript(extractedTitle);
+
+        // Pasang Gambar ke Kanvas
+        productImage.src = extractedImage;
+        document.getElementById('scrapedImgPreview').src = extractedImage;
+        document.getElementById('scrapedTitle').innerText = scriptData.title;
+
+        productImage.onload = () => {
+          loadingBox.classList.add('hidden');
+          btn.disabled = false;
+          document.getElementById('resultSection').classList.remove('hidden');
+          drawCanvas(scriptData.hook, "PROMO VIRAL 🔥");
+        };
+
+        productImage.onerror = () => {
+          // Jika gambar gagal dimuat (CORS blocker), gunakan gambar fallback aman
+          productImage.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80";
+        };
+
+      } catch (err) {
+        alert("Gagal membaca link secara langsung, sistem akan menggunakan template produk.");
+        generateAffiliateScript("Produk Rekomendasi TikTok");
+        productImage.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80";
+        loadingBox.classList.add('hidden');
+        btn.disabled = false;
+        document.getElementById('resultSection').classList.remove('hidden');
+      }
+    }
+
+    // 2. Generator Skrip Affiliate TikTok Otomatis
+    function generateAffiliateScript(productTitle) {
+      // Ringkas judul agar tidak kepanjangan
+      const cleanTitle = productTitle.substring(0, 32);
+
+      const hookTemplates = [
+        `Nyesel banget baru nemu ${cleanTitle} sebagus ini!`,
+        `Pantesan tiap hari seliweran di FYP, ternyata ini rahasianya!`,
+        `Jangan beli ${cleanTitle} sebelum kamu nonton video ini sampai habis!`
+      ];
+
+      scriptData.title = cleanTitle;
+      scriptData.hook = hookTemplates[Math.floor(Math.random() * hookTemplates.length)];
+      scriptData.body = `Kualitasnya beneran premium, praktis banget dipakai harian dan lagi banyak promo diskon.`;
+      scriptData.cta = `Klik keranjang kuning di kiri bawah sekarang sebelum promonya hangus!`;
+
+      document.getElementById('textHook').innerText = scriptData.hook;
+      document.getElementById('textBody').innerText = scriptData.body;
+      document.getElementById('textCta').innerText = scriptData.cta;
+    }
+
+    // 3. Merender Frame Video Vertikal 9:16
+    function drawCanvas(caption, badge = "TIKTOK AFFILIATE") {
+      const canvas = document.getElementById('videoCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Latar belakang modern gradasi
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#020617');
+      grad.addColorStop(0.5, '#0f172a');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Gambar Produk di Tengah (Dengan bayangan)
+      if (productImage.complete && productImage.naturalWidth !== 0) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetY = 20;
+
+        const imgRatio = productImage.width / productImage.height;
+        let dw = w * 0.82;
+        let dh = dw / imgRatio;
+
+        if (dh > h * 0.45) {
+          dh = h * 0.45;
+          dw = dh * imgRatio;
+        }
+
+        const dx = (w - dw) / 2;
+        const dy = (h - dh) / 2 - 40;
+
+        // Gambar border frame putih tipis
+        ctx.drawImage(productImage, dx, dy, dw, dh);
+        ctx.restore();
+      }
+
+      // Badge Atas (Gaya Iklan FYP)
+      ctx.fillStyle = '#e11d48';
+      roundRect(ctx, w/2 - 160, 100, 320, 56, 28);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(badge, w/2, 137);
+
+      // Box Subtitle Bawah (CapCut / TikTok Style)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      roundRect(ctx, 40, h - 310, w - 80, 190, 24);
+      ctx.fill();
+
+      // Border halus pada box subtitle
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, 40, h - 310, w - 80, 190, 24);
+      ctx.stroke();
+
+      // Teks Subtitle Kuning Kontras
+      ctx.fillStyle = '#facc15';
+      ctx.font = '900 34px sans-serif';
+      wrapText(ctx, caption, w / 2, h - 235, w - 120, 44);
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+    }
+
+    // 4. Playback + Perekaman Download Video Langsung di HP
+    function playAndGenerate(isDownloadMode = false) {
+      if (!scriptData.hook) return;
+
+      window.speechSynthesis.cancel();
+      isPlaying = true;
+
+      const canvas = document.getElementById('videoCanvas');
+      const fullScript = `${scriptData.hook}. ${scriptData.body}. ${scriptData.cta}`;
+      const utterance = new SpeechSynthesisUtterance(fullScript);
+      utterance.lang = 'id-ID';
+      utterance.rate = 1.05;
+
+      // Perekam Video (Canvas Stream ke Video File)
+      if (isDownloadMode) {
+        document.getElementById('recordingBadge').classList.remove('hidden');
+        recordedChunks = [];
+        const stream = canvas.captureStream(30); // 30 FPS
+        
+        let options = { mimeType: 'video/webm' };
+        if (!MediaRecorder.isTypeSupported('video/webm')) {
+          options = { mimeType: 'video/mp4' };
+        }
+
+        try {
+          mediaRecorder = new MediaRecorder(stream, options);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.onstop = saveVideoFile;
+          mediaRecorder.start();
+        } catch (e) {
+          console.warn("MediaRecorder fallback mode");
+        }
+      }
+
+      // Animasi Pergantian Adegan Sesuai Alur TikTok
+      utterance.onstart = () => {
+        drawCanvas(scriptData.hook, "PROMO VIRAL 🔥");
+        setTimeout(() => {
+          if (isPlaying) drawCanvas(scriptData.body, "KENAPA HARUS BELI? 🤔");
+        }, 3600);
+        setTimeout(() => {
+          if (isPlaying) drawCanvas(scriptData.cta, "BELI DI KERANJANG KUNING 👇");
+        }, 8200);
+      };
+
+      utterance.onend = () => {
+        isPlaying = false;
+        drawCanvas("KLIK KERANJANG KUNING SEKARANG!", "DISKON TERBATAS 🛒");
+        
+        if (isDownloadMode && mediaRecorder && mediaRecorder.state !== 'inactive') {
+          setTimeout(() => {
+            mediaRecorder.stop();
+            document.getElementById('recordingBadge').classList.add('hidden');
+          }, 800);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function saveVideoFile() {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Affiliate_${Date.now()}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      alert("Video berhasil dibuat & otomatis terunduh ke HP kamu!");
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      window.speechSynthesis.cancel();
+      document.getElementById('recordingBadge').classList.add('hidden');
+      drawCanvas("Video Dijeda", "PAUSED");
+    }
+  </script>
+</body>
+</html>
